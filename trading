@@ -7,13 +7,9 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler
 import schedule
 
-TOKEN = os.environ["BOT_TOKEN"]
-CHAT_ID = os.environ["CHAT_ID"]
-WEBAPP_URL = "https://y-one-orcin.vercel.app"python-telegram-bot==20.7
-Flask==3.0.0
-schedule==1.2.0
-
-web: python bot.py
+TOKEN = os.environ["8724036750:AAGsFRjJ4L78y4uVUfmRO2cuW_LvTVUByh8"]
+CHAT_ID = os.environ["5345051936"]
+WEBAPP_URL = "https://y-one-orcin.vercel.app"
 
 logging.basicConfig(level=logging.INFO)
 app_flask = Flask(__name__)
