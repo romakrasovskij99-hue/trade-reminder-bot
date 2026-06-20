@@ -1,0 +1,65 @@
+import os
+import logging
+import threading
+import time
+from flask import Flask
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from telegram.ext import Application, CommandHandler
+import schedule
+
+# ---------- ВСТАВЬТЕ СВОЙ ТОКЕН СЮДА ----------
+TOKEN = "8724036750:AAGsFRjJ4L78y4uVUfmRO2cuW_LvTVUByh8"          
+CHAT_ID = "5345051936"            # ваш Telegram ID
+WEBAPP_URL = "https://y-one-orcin.vercel.app"
+
+logging.basicConfig(level=logging.INFO)
+app_flask = Flask(__name__)
+
+@app_flask.route("/ping")
+def ping():
+    return "ok"
+
+async def start(update, context):
+    await update.message.reply_text(
+        "👋 Я бот‑напоминатель. Каждое утро в 8:45 буду присылать чек‑лист.",
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("📋 Открыть чек‑лист", web_app=WebAppInfo(url=WEBAPP_URL))]
+        ])
+    )
+
+async def send_reminder(application):
+    try:
+        await application.bot.send_message(
+            chat_id=CHAT_ID,
+            text="🌅 Доброе утро! Пора пройти предполётную проверку.",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("📋 Открыть чек‑лист", web_app=WebAppInfo(url=WEBAPP_URL))]
+            ])
+        )
+        logging.info("Утреннее уведомление отправлено")
+    except Exception as e:
+        logging.error(f"Ошибка: {e}")
+
+def run_bot():
+    app = Application.builder().token(TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+
+    # Будни 8:45 МСК = 5:45 UTC
+    schedule.every().monday.at("05:45").do(lambda: app.create_task(send_reminder(app)))
+    schedule.every().tuesday.at("05:45").do(lambda: app.create_task(send_reminder(app)))
+    schedule.every().wednesday.at("05:45").do(lambda: app.create_task(send_reminder(app)))
+    schedule.every().thursday.at("05:45").do(lambda: app.create_task(send_reminder(app)))
+    schedule.every().friday.at("05:45").do(lambda: app.create_task(send_reminder(app)))
+
+    def scheduler_loop():
+        while True:
+            schedule.run_pending()
+            time.sleep(30)
+
+    threading.Thread(target=scheduler_loop, daemon=True).start()
+    logging.info("Бот запущен.")
+    app.run_polling()
+
+if __name__ == "__main__":
+    threading.Thread(target=run_bot).start()
+    app_flask.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
